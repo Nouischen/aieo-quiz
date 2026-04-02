@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIEO 2026 課前自我評量</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0e1a;
+    --card: #131929;
+    --card-hover: #1a2236;
+    --border: #1e2a42;
+    --accent: #00e5ff;
+    --accent-dim: rgba(0,229,255,0.12);
+    --correct: #00e676;
+    --correct-dim: rgba(0,230,118,0.12);
+    --wrong: #ff5252;
+    --wrong-dim: rgba(255,82,82,0.12);
+    --unsure: #ffc107;
+    --unsure-dim: rgba(255,193,7,0.12);
+    --text: #e8eaf6;
+    --text-dim: #7986a8;
+    --radius: 14px;
+  }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.7;
+  }
+
+  /* ---- Hero / Header ---- */
+  .hero {
+    text-align: center;
+    padding: 60px 24px 40px;
+    background: linear-gradient(180deg, #0f1528 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-badge {
+    display: inline-block;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 5px 16px;
+    border-radius: 99px;
+    letter-spacing: 1px;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: clamp(26px, 5vw, 40px);
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 560px;
+    margin: 0 auto 28px;
+  }
+
+  /* scoring legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .legend-dot.c { background: var(--correct); }
+  .legend-dot.u { background: var(--unsure); }
+  .legend-dot.w { background: var(--wrong); }
+
+  /* ---- Container ---- */
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+
+  /* ---- Question Card ---- */
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 28px 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .q-card:hover { border-color: #2a3a5a; }
+  .q-card.answered-correct { border-color: var(--correct); box-shadow: 0 0 20px rgba(0,230,118,0.08); }
+  .q-card.answered-wrong { border-color: var(--wrong); box-shadow: 0 0 20px rgba(255,82,82,0.08); }
+  .q-card.answered-unsure { border-color: var(--unsure); box-shadow: 0 0 20px rgba(255,193,7,0.08); }
+
+  .q-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .q-num {
+    flex-shrink: 0;
+    width: 34px; height: 34px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-weight: 900;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+  }
+  .q-tag {
+    font-size: 12px;
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.04);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .q-text {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.75;
+    margin-bottom: 20px;
+  }
+
+  /* ---- Buttons ---- */
+  .q-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .q-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .q-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .q-btn:disabled { cursor: default; opacity: 0.5; }
+  .q-btn.selected-correct {
+    border-color: var(--correct);
+    background: var(--correct-dim);
+    color: var(--correct);
+    opacity: 1 !important;
+  }
+  .q-btn.selected-wrong {
+    border-color: var(--wrong);
+    background: var(--wrong-dim);
+    color: var(--wrong);
+    opacity: 1 !important;
+  }
+  .q-btn.selected-unsure {
+    border-color: var(--unsure);
+    background: var(--unsure-dim);
+    color: var(--unsure);
+    opacity: 1 !important;
+  }
+  .q-btn.show-answer {
+    border-color: var(--correct);
+    background: var(--correct-dim);
+    color: var(--correct);
+    opacity: 1 !important;
+  }
+
+  /* ---- Explanation ---- */
+  .q-explain {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.8;
+    display: none;
+  }
+  .q-explain.visible { display: block; }
+  .q-explain.is-correct { background: var(--correct-dim); border-left: 3px solid var(--correct); }
+  .q-explain.is-wrong { background: var(--wrong-dim); border-left: 3px solid var(--wrong); }
+  .q-explain.is-unsure { background: var(--unsure-dim); border-left: 3px solid var(--unsure); }
+  .q-explain .pts {
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .q-explain .pts.c { color: var(--correct); }
+  .q-explain .pts.u { color: var(--unsure); }
+  .q-explain .pts.w { color: var(--wrong); }
+
+  /* ---- Progress Bar ---- */
+  .progress-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,26,0.92);
+    backdrop-filter: blur(10px);
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), #76ff03);
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(0.22,1,0.36,1);
+  }
+  .progress-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* ---- Result Panel ---- */
+  .result-panel {
+    display: none;
+    text-align: center;
+    padding: 48px 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-top: 12px;
+  }
+  .result-panel.visible { display: block; }
+  .result-score {
+    font-size: clamp(56px, 10vw, 80px);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), #76ff03);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .result-label {
+    font-size: 16px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+  .result-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .result-stat { text-align: center; }
+  .result-stat .num { font-size: 28px; font-weight: 900; }
+  .result-stat .num.c { color: var(--correct); }
+  .result-stat .num.u { color: var(--unsure); }
+  .result-stat .num.w { color: var(--wrong); }
+  .result-stat .lbl { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  .result-message {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-dim);
+    max-width: 500px;
+    margin: 0 auto 28px;
+  }
+
+  .btn-restart {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    background: var(--accent);
+    color: #000;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-restart:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0,229,255,0.25);
+  }
+
+  /* ---- Footer ---- */
+  .footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  /* ---- Mobile tweaks ---- */
+  @media (max-width: 520px) {
+    .q-card { padding: 20px 18px 18px; }
+    .q-options { flex-direction: column; }
+    .q-btn { min-width: unset; }
+    .hero { padding: 40px 18px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">AIEO 2026</div>
+  <h1><span>AI 搜尋時代</span>課前自我評量</h1>
+  <p>以下 10 道是非題將測試您對 AI 搜尋優化的理解程度。<br>
+  課程結束後，每一題您都將完全掌握。</p>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot c"></div>答對 +10 分</div>
+    <div class="legend-item"><div class="legend-dot u"></div>不確定 +5 分</div>
+    <div class="legend-item"><div class="legend-dot w"></div>答錯 0 分</div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-wrap">
+  <div class="progress-inner">
+    <div class="progress-bar"><div class="progress-fill" id="progFill"></div></div>
+    <div class="progress-label" id="progLabel">0 / 10</div>
+  </div>
+</div>
+
+<!-- Questions -->
+<div class="container" id="qContainer"></div>
+
+<!-- Result -->
+<div class="container" style="padding-top:0">
+  <div class="result-panel" id="resultPanel">
+    <div class="result-score" id="resultScore">0</div>
+    <div class="result-label">/ 100 分</div>
+    <div class="result-breakdown" id="resultBreakdown"></div>
+    <div class="result-message" id="resultMsg"></div>
+    <button class="btn-restart" onclick="restart()">&#x21bb;&nbsp;重新測驗</button>
+  </div>
+</div>
+
+<div class="footer">
+  AIEO 2026 &mdash; 陳昱傑醫師 課程教材
+</div>
+
+<script>
+const questions = [
+  {
+    tag: "Google 商家經營",
+    text: "在 Google 商家檔案上，除了填寫正式的診所名稱之外，後面再加上自己擅長的主打自費療程（例如「陳昱傑骨科診所：PRP 血小板增生治療、超音波導引注射」），這樣等於打免費廣告，是聰明的做法。",
+    answer: false,
+    explain: "這是違反 Google 商家政策的行為！商家名稱只能使用正式立案的名稱。2021 年 Google 推出 Vicinity 演算法更新，專門打擊在名稱中塞關鍵字的行為，被檢舉或偵測到後，整個商家檔案可能被停用，多年累積的評論、照片、數據全部消失。近年停權案例大幅增加。"
+  },
+  {
+    tag: "算力經濟學",
+    text: "診所的療程費用表，設計師做了一張非常精美的 JPG 圖片放上官網。因為人類看起來很清楚，所以 AI 也能輕鬆讀取裡面的價格資訊。",
+    answer: false,
+    explain: "對 AI 來說，圖片就像一堵牆！AI 必須啟動 OCR（光學字元辨識）來解讀圖片中的文字，算力成本遠高於直接讀取 HTML 純文字表格。簡單的判斷方法：用滑鼠去反白表格裡的數字，如果可以選取複製就是 HTML 文字（AI 秒讀），如果整張跟著滑鼠跑就是圖片（AI 超吃力）。"
+  },
+  {
+    tag: "Google Maps 影片",
+    text: "在 Google Maps 商家檔案發布影片時，應該把影片「原生上傳」而不是貼 YouTube 連結，因為原生影片會自動靜音播放，而且不會把流量導出地圖頁面。",
+    answer: true,
+    explain: "正確！貼 YouTube 連結只會顯示一個靜態縮圖，使用者點擊後會跳出 Google Maps。原生上傳的影片則會在病患滑過去時自動靜音播放，抓住眼球，而且病患看完後會繼續瀏覽你的評論和服務項目，大幅縮短「看到 → 來電」的轉換路徑。"
+  },
+  {
+    tag: "網站更新策略",
+    text: "為了讓 Google 覺得網站很活躍，有些行銷公司建議每週把舊文章的「發布日期」改成今天，但內容完全不改。這是一種有效的 SEO 策略。",
+    answer: false,
+    explain: "這是致命的「假性更新」，在 AI 時代等同「偽造病歷」！現在的 AI 會比對你網站前後版本的內容變化，一旦被抓到只改日期不改內容，整個網站會被嚴重降權。正確做法是每次更新都要做「實質增修」：補上最新文獻 DOI 連結、新增臨床數據、更新治療案例等。"
+  },
+  {
+    tag: "社群平台與 AI",
+    text: "在 Facebook 私密社團或 LINE 群組裡累積的大量病患好評和推薦，AI 搜尋引擎也能爬取到，可以幫助提升診所的推薦排名。",
+    answer: false,
+    explain: "Facebook 私密社團和 LINE 群組對 AI 來說是「上鎖的 VIP 病房」，AI 爬蟲根本進不去！只有公開平台上的內容（Google 評論、PTT、Dcard 等）AI 才爬得到。想讓病患口碑被 AI 看見，應該引導他們在 Google 商家留下公開評論，而不是把好評鎖在封閉社群裡。"
+  },
+  {
+    tag: "YMYL 風險揭露",
+    text: "在療程介紹頁面主動寫出副作用和風險（例如「約 15% 患者會出現局部腫脹」），反而會讓 AI 更信任你的網站，提升被推薦的機率。",
+    answer: true,
+    explain: "正確！醫療內容屬於 YMYL（Your Money or Your Life），AI 對此極度重視「安全性」。主動誠實揭露風險，AI 會判定你是客觀、負責任的醫療機構。2026 年的病患在找你之前早就問過 AI 了，如果你的網站完全不提風險，AI 反而認為你不夠專業、不夠客觀。"
+  },
+  {
+    tag: "YouTube 字幕校正",
+    text: "YouTube 的自動語音辨識技術已經非常成熟，醫療影片上傳後可以完全依賴自動字幕，不需要再花時間人工校正。",
+    answer: false,
+    explain: "YouTube 自動辨識對醫療術語常常聽錯：把「PRP」聽成「People」、「骨刺」聽成「故事」、「玻尿酸」聽成「播音酸」。如果不校正，AI 就會用錯誤的字幕來索引你的影片，整支影片的搜尋流量就毀了。只需花 10 分鐘進後台校正關鍵字，投資報酬率極高。"
+  },
+  {
+    tag: "評論經營",
+    text: "Google 評價 4.2–4.5 星、且認真回覆每一則負評的診所，比純 5.0 滿分的診所更容易獲得病患的信任。",
+    answer: true,
+    explain: "正確！根據 Northwestern 大學的大規模研究，消費者的購買意願在 4.2 到 4.5 星之間達到最高峰。接近完美的 5 星反而引發「太好了，是不是洗出來的？」的懷疑。AI 的信任判斷也受類似邏輯影響。及時、誠懇、客製化回覆每一則負評，比追求純 5 星更有效。"
+  },
+  {
+    tag: "價格透明度",
+    text: "官網的費用頁面寫「歡迎來電洽詢」或「請加 LINE 詢問」，對 AI 來說是嚴重的「資訊斷橋」，因為 AI 沒辦法打電話也沒有 LINE 帳號，會直接跳過你的網站。",
+    answer: true,
+    explain: "正確！AI 沒辦法打電話、沒辦法加 LINE、沒辦法掃 QR Code。當 AI 代替病人搜尋「PRP 治療多少錢」時，看到你寫「歡迎來電洽詢」就等於撞到一面死牆，只好去推薦有明確標價的競爭對手。正確做法是用 HTML 純文字表格公開費用區間。"
+  },
+  {
+    tag: "影片品質管理",
+    text: "診所助理拍好影片後，用 LINE 傳給醫師再上傳到 Google 商家，是最方便快速的做法，不會影響影片品質。",
+    answer: false,
+    explain: "LINE 預設會壓縮影片畫質，例如原始 3MB 的影片會被壓縮成約 1MB，畫面會變得比較模糊，影響專業觀感。正確做法是從源頭就避開 LINE 壓縮：使用 AirDrop（iPhone）、Quick Share（Android）、雲端硬碟（Google Drive）或 USB 傳輸線，完整保留原始畫質後再上傳。"
+  }
+];
+
+let answered = 0;
+let score = 0;
+let correctCount = 0;
+let wrongCount = 0;
+let unsureCount = 0;
+
+function renderQuestions() {
+  const container = document.getElementById('qContainer');
+  container.innerHTML = '';
+  questions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'q-card';
+    card.id = `q${i}`;
+    card.innerHTML = `
+      <div class="q-header">
+        <div class="q-num">${i + 1}</div>
+        <div class="q-tag">${q.tag}</div>
+      </div>
+      <div class="q-text">${q.text}</div>
+      <div class="q-options">
+        <button class="q-btn" data-q="${i}" data-choice="true" onclick="pick(${i}, true, this)">&#x2714;&ensp;正確</button>
+        <button class="q-btn" data-q="${i}" data-choice="unsure" onclick="pick(${i}, 'unsure', this)">&#x2753;&ensp;不確定</button>
+        <button class="q-btn" data-q="${i}" data-choice="false" onclick="pick(${i}, false, this)">&#x2718;&ensp;錯誤</button>
+      </div>
+      <div class="q-explain" id="explain${i}"></div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function pick(idx, choice, btn) {
+  const q = questions[idx];
+  const card = document.getElementById(`q${idx}`);
+  const allBtns = card.querySelectorAll('.q-btn');
+
+  // prevent double answer
+  if (card.dataset.answered) return;
+  card.dataset.answered = '1';
+
+  allBtns.forEach(b => b.disabled = true);
+
+  let pts = 0;
+  let resultClass = '';
+  let ptsClass = '';
+
+  if (choice === 'unsure') {
+    pts = 5;
+    unsureCount++;
+    btn.classList.add('selected-unsure');
+    card.classList.add('answered-unsure');
+    resultClass = 'is-unsure';
+    ptsClass = 'u';
+    // highlight the correct answer
+    allBtns.forEach(b => {
+      const bChoice = b.dataset.choice;
+      if ((q.answer && bChoice === 'true') || (!q.answer && bChoice === 'false')) {
+        b.classList.add('show-answer');
+      }
+    });
+  } else {
+    const isCorrect = (choice === q.answer);
+    if (isCorrect) {
+      pts = 10;
+      correctCount++;
+      btn.classList.add('selected-correct');
+      card.classList.add('answered-correct');
+      resultClass = 'is-correct';
+      ptsClass = 'c';
+    } else {
+      pts = 0;
+      wrongCount++;
+      btn.classList.add('selected-wrong');
+      card.classList.add('answered-wrong');
+      resultClass = 'is-wrong';
+      ptsClass = 'w';
+      // highlight the correct answer
+      allBtns.forEach(b => {
+        const bChoice = b.dataset.choice;
+        if ((q.answer && bChoice === 'true') || (!q.answer && bChoice === 'false')) {
+          b.classList.add('show-answer');
+        }
+      });
+    }
+  }
+
+  score += pts;
+  answered++;
+
+  // show explanation
+  const explDiv = document.getElementById(`explain${idx}`);
+  const ptsText = pts === 10 ? '+10 分' : pts === 5 ? '+5 分' : '+0 分';
+  const emoji = pts === 10 ? '&#x2705;' : pts === 5 ? '&#x1F914;' : '&#x274C;';
+  explDiv.innerHTML = `
+    <div class="pts ${ptsClass}">${emoji} ${ptsText}${pts === 10 ? ' — 答對了！' : pts === 5 ? ' — 課程中將完整解答' : ' — 正確答案是「' + (q.answer ? '正確' : '錯誤') + '」'}</div>
+    <div>${q.explain}</div>
+  `;
+  explDiv.classList.add('visible', resultClass);
+
+  updateProgress();
+
+  if (answered === questions.length) {
+    setTimeout(showResult, 600);
+  }
+}
+
+function updateProgress() {
+  document.getElementById('progFill').style.width = (answered / questions.length * 100) + '%';
+  document.getElementById('progLabel').textContent = `${answered} / ${questions.length}`;
+}
+
+function showResult() {
+  const panel = document.getElementById('resultPanel');
+  panel.classList.add('visible');
+  document.getElementById('resultScore').textContent = score;
+
+  const bd = document.getElementById('resultBreakdown');
+  bd.innerHTML = `
+    <div class="result-stat"><div class="num c">${correctCount}</div><div class="lbl">答對</div></div>
+    <div class="result-stat"><div class="num u">${unsureCount}</div><div class="lbl">不確定</div></div>
+    <div class="result-stat"><div class="num w">${wrongCount}</div><div class="lbl">答錯</div></div>
+  `;
+
+  let msg = '';
+  if (score >= 80) {
+    msg = '您已經具備相當不錯的 AI 搜尋優化基礎觀念！課程將幫助您進一步掌握實戰細節與進階策略。';
+  } else if (score >= 50) {
+    msg = '您對部分概念已有正確直覺，但仍有一些關鍵知識需要在課程中補齊。這些「不確定」的題目，正是課程的核心價值所在。';
+  } else {
+    msg = '別擔心！這些題目涵蓋的都是 2026 年最新的 AI 搜尋趨勢，許多觀念顛覆了傳統行銷思維。課程結束後，您將完全掌握每一個概念。';
+  }
+  document.getElementById('resultMsg').textContent = msg;
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function restart() {
+  answered = 0;
+  score = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  unsureCount = 0;
+  document.getElementById('resultPanel').classList.remove('visible');
+  renderQuestions();
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// init
+renderQuestions();
+updateProgress();
+</script>
+</body>
+</html>
